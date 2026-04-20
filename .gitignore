@@ -1,0 +1,33 @@
+# ESP-IDF build directory
+build/
+
+# Python compiled files
+**/__pycache__/
+*.pyc
+*.pyo
+
+# C/C++ compiled files
+*.o
+*.d
+*.obj
+
+# Managed components (ESP-IDF Component Manager)
+managed_components/
+dependencies.lock
+
+# VS Code specific
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# Local SDK configuration (sometimes contains absolute paths)
+sdkconfig
+sdkconfig.old
+
+# Log files
+*.log
+
+# Temporary and backup files
+*~
+.DS_Store
