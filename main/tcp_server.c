@@ -15,7 +15,7 @@
 #include <string.h>
 #include <errno.h>
 
-// ─── Client table ─────────────────────────────────────────────────────────────
+// Client table
 typedef struct {
     int      fd;          // socket fd; -1 = slot kosong
     uint32_t ip;          // client IP (network byte order)
@@ -26,7 +26,6 @@ static client_slot_t    s_clients[TCP_MAX_CLIENTS];
 static SemaphoreHandle_t s_clients_mutex;
 static int               s_client_count = 0;
 
-// ─── Internal: cấp / trả slot ─────────────────────────────────────────────────
 static int alloc_slot(int fd, uint32_t ip, uint16_t port)
 {
     xSemaphoreTake(s_clients_mutex, portMAX_DELAY);
@@ -41,7 +40,7 @@ static int alloc_slot(int fd, uint32_t ip, uint16_t port)
         }
     }
     xSemaphoreGive(s_clients_mutex);
-    return -1;  // đầy
+    return -1; 
 }
 
 static void free_slot(int idx)
@@ -55,12 +54,11 @@ static void free_slot(int idx)
     xSemaphoreGive(s_clients_mutex);
 }
 
-// Per-client recv task
-// Mỗi client kết nối vào sẽ spawn 1 task này.
 typedef struct {
     int slot_idx;
 } client_task_arg_t;
 
+// Per-client recv task
 static void tcp_client_task(void *arg)
 {
     client_task_arg_t *a = (client_task_arg_t *)arg;
@@ -79,10 +77,9 @@ static void tcp_client_task(void *arg)
 
     ESP_LOGI(LOG_TAG_TCP, "Client [%d] connected from %s:%d", idx, ip_str, s_clients[idx].port);
 
-    // Set receive timeout để không block mãi mãi
     struct timeval tv = {
         .tv_sec  = 0,
-        .tv_usec = 200000,  // 200ms
+        .tv_usec = 200000, 
     };
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
@@ -92,8 +89,6 @@ static void tcp_client_task(void *arg)
 
         if (n > 0) {
             chunk.len = (uint16_t)n;
-            ESP_LOGI(LOG_TAG_TCP, "Client [%d] recv %d bytes -> UART2", idx, n);
-
             BaseType_t ok = xQueueSendToBack(g_tcp_to_uart_queue, &chunk,
                                              pdMS_TO_TICKS(QUEUE_SEND_TIMEOUT_MS));
             if (ok != pdTRUE) {
@@ -121,12 +116,8 @@ static void tcp_client_task(void *arg)
 static void tcp_broadcast_task(void *arg)
 {
     bridge_chunk_t chunk;
-    ESP_LOGI(LOG_TAG_TCP, "tcp_broadcast_task started");
-
     while (1) {
         if (xQueueReceive(g_uart_to_tcp_queue, &chunk, portMAX_DELAY) != pdTRUE) continue;
-
-        ESP_LOGI(LOG_TAG_TCP, "Broadcast %d bytes to %d clients", chunk.len, s_client_count);
 
         xSemaphoreTake(s_clients_mutex, portMAX_DELAY);
         for (int i = 0; i < TCP_MAX_CLIENTS; i++) {
@@ -142,9 +133,6 @@ static void tcp_broadcast_task(void *arg)
             int sent = send(s_clients[i].fd, chunk.data, chunk.len, 0);
             if (sent < 0) {
                 ESP_LOGW(LOG_TAG_TCP, "Client [%d] send error %d — marking for close", i, errno);
-                // Không close trực tiếp ở đây (tránh race với tcp_client_task).
-                // tcp_client_task sẽ phát hiện lỗi và tự close.
-                // Nếu muốn force close: shutdown(s_clients[i].fd, SHUT_RDWR);
                 shutdown(s_clients[i].fd, SHUT_RDWR);
             }
         }
@@ -152,7 +140,7 @@ static void tcp_broadcast_task(void *arg)
     }
 }
 
-// ─── Server accept task ───────────────────────────────────────────────────────
+// Server accept task
 static void tcp_server_task(void *arg)
 {
     int server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -187,7 +175,6 @@ static void tcp_server_task(void *arg)
 
     ESP_LOGI(LOG_TAG_TCP, "TCP server listening on port %d", config_get_port());
 
-    // Tạo broadcast task (Core 1 để gần UART)
     xTaskCreatePinnedToCore(tcp_broadcast_task, "tcp_bcast_task",
                             TASK_STACK_BROADCAST, NULL,
                             TASK_PRIO_BROADCAST, NULL, 1);
@@ -213,12 +200,11 @@ static void tcp_server_task(void *arg)
                               client_addr.sin_addr.s_addr,
                               ntohs(client_addr.sin_port));
         if (slot < 0) {
-            ESP_LOGE(LOG_TAG_TCP, "No free slot (should not happen)");
+            ESP_LOGE(LOG_TAG_TCP, "No free slot");
             close(client_fd);
             continue;
         }
 
-        // Tạo task riêng cho client
         client_task_arg_t *targ = malloc(sizeof(client_task_arg_t));
         if (!targ) {
             ESP_LOGE(LOG_TAG_TCP, "malloc failed for client task arg");
@@ -255,8 +241,6 @@ int tcp_server_client_count(void)
 
 int tcp_server_broadcast(const uint8_t *data, uint16_t len)
 {
-    // Hàm này không dùng trực tiếp (broadcast qua queue),
-    // nhưng expose để CLI có thể gọi kiểm tra.
     int ok = 0;
     xSemaphoreTake(s_clients_mutex, portMAX_DELAY);
     for (int i = 0; i < TCP_MAX_CLIENTS; i++) {

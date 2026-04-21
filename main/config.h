@@ -1,19 +1,19 @@
 #pragma once
 
 // ─── WiFi Soft AP ────────────────────────────────────────────────────────────
-#define DEFAULT_AP_SSID        "ESP32-Bridge"
+#define DEFAULT_AP_SSID        "ESP32-PBE"
 #define DEFAULT_AP_PASS        "12345678"
 #define AP_MAX_CONNECTIONS     2
 #define AP_CHANNEL             1
 #define AP_BEACON_INTERVAL_MS  100
-#define DEFAULT_AP_IP          "192.168.4.1"
-#define DEFAULT_AP_GW          "192.168.4.1"
+#define DEFAULT_AP_IP          "192.168.10.1"
+#define DEFAULT_AP_GW          "192.168.10.1"
 #define DEFAULT_AP_NETMASK     "255.255.255.0"
 
 
 // ─── TCP Server ───────────────────────────────────────────────────────────────
 #define DEFAULT_TCP_PORT       8080
-#define TCP_MAX_CLIENTS        2
+#define TCP_MAX_CLIENTS        4
 #define TCP_RECV_BUF_SIZE      1024
 #define TCP_SEND_TIMEOUT_MS    200
 #define TCP_RECV_TIMEOUT_MS    0       // 0 = blocking (handled by select)
@@ -34,9 +34,9 @@
 #define CLI_PROMPT             "\r\n> "
 
 // ─── FreeRTOS Queues ─────────────────────────────────────────────────────────
-#define QUEUE_UART_TO_TCP_LEN  32      // số lượng items (mỗi item 1 chunk)
+#define QUEUE_UART_TO_TCP_LEN  64      
 #define QUEUE_TCP_TO_UART_LEN  32
-#define QUEUE_CHUNK_SIZE       512     // bytes mỗi item
+#define QUEUE_CHUNK_SIZE       512    
 #define QUEUE_SEND_TIMEOUT_MS  5       // drop nếu queue đầy sau 5ms
 
 // ─── FreeRTOS Tasks ──────────────────────────────────────────────────────────
@@ -64,7 +64,6 @@
 #define NVS_KEY_DHCP_EN        "dhcp_en"
 
 // ─── Logger ───────────────────────────────────────────────────────────────────
-#define LOG_RING_BUF_SIZE      2048
 #define LOG_TAG_MAIN           "MAIN"
 #define LOG_TAG_WIFI           "WIFI"
 #define LOG_TAG_TCP            "TCP"

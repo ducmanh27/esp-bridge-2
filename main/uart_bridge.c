@@ -20,10 +20,10 @@ static volatile uint32_t s_dropped  = 0;
 
 // UART2 RX Task
 // Block chờ uart_event_t từ driver. Driver ISR tự push event khi:
-//   UART_DATA        → có data mới trong ring buffer
-//   UART_FIFO_OVF    → FIFO overflow (baud quá cao hoặc task xử lý chậm)
-//   UART_BUFFER_FULL → ring buffer đầy
-//   UART_FRAME_ERR   → lỗi framing (sai baud/format)
+//   UART_DATA         có data mới trong ring buffer
+//   UART_FIFO_OVF     FIFO overflow (baud quá cao hoặc task xử lý chậm)
+//   UART_BUFFER_FULL  ring buffer đầy
+//   UART_FRAME_ERR    lỗi framing (sai baud/format)
 static void uart_rx_task(void *arg)
 {
     uart_event_t   event;
@@ -84,7 +84,6 @@ static void uart_rx_task(void *arg)
         case UART_PARITY_ERR:
             ESP_LOGE(TAG, "UART parity error");
             break;
-
         default:
             ESP_LOGI(TAG, "UART unhandled event type: %d", event.type);
             break;
@@ -92,7 +91,7 @@ static void uart_rx_task(void *arg)
     }
 }
 
-// Pop g_tcp_to_uart_queue → ghi ra UART2 TX.
+// Pop g_tcp_to_uart_queue ghi ra UART2 TX.
 static void uart_tx_task(void *arg)
 {
     bridge_chunk_t chunk;
@@ -108,7 +107,6 @@ static void uart_tx_task(void *arg)
                 ESP_LOGE(TAG, "uart_write_bytes error");
             } else {
                 s_tx_bytes += (uint32_t)written;
-                ESP_LOGI(TAG, "TX %d bytes to UART2", written);
             }
         }
     }
@@ -151,15 +149,10 @@ void  uart_bridge_init(void)
         ESP_LOGE(TAG, "uart_set_pin failed: %s", esp_err_to_name(err));
         return;
     }
+    uart_disable_intr_mask(UART2_PORT, (0x1 << 7));
+    uart_set_rx_full_threshold(UART2_PORT, 126);
 
-    // Ngưỡng UART_DATA event: driver chỉ push event khi có >= N bytes
-    // = 1 -> event ngay khi có 1 byte (latency thấp nhất)
-    // Tăng lên 64-128 nếu cần throughput cao hơn latency
-    uart_set_rx_full_threshold(UART2_PORT, 20);
-
-    // RX timeout: flush event sau N ký tự bit-time không có data mới
-    // Đảm bảo packet cuối không bị kẹt khi lưu lượng thưa
-    uart_set_rx_timeout(UART2_PORT, 10);
+    uart_set_rx_timeout(UART2_PORT, 20);
 
     ESP_LOGI(TAG, "UART2 init OK — event-driven (baud=%d TX=%d RX=%d)",
              UART2_BAUD, UART2_TX_PIN, UART2_RX_PIN);

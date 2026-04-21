@@ -78,10 +78,10 @@ help                  Danh sách lệnh
 
 | Thông số | Giá trị mặc định |
 |----------|-----------------|
-| SSID | `ESP32-Bridge` |
+| SSID | `ESP32-PBE` |
 | Password | `12345678` |
 | TCP Port | `8080` |
-| AP IP | `192.168.4.1` |
+| AP IP | `192.168.10.1` |
 | Max TCP clients | 4 |
 | UART2 baud | 115200 |
 
@@ -90,9 +90,9 @@ help                  Danh sách lệnh
 ## Chạy Test
 
 ```bash
-# Kết nối PC vào WiFi ESP32-Bridge, sau đó:
+# Kết nối PC vào WiFi ESP32-PBE, sau đó:
 pip install pyserial
-python test_loopback.py --host 192.168.4.1 --port 8080 --serial /dev/ttyUSB0
+python test_loopback.py --host 192.168.10.1 --port 8080 --serial_data /dev/ttyUSB1 --cli_port /dev/ttyUSB0
 
 # Chạy test cụ thể (ví dụ test 1 và 3):
 python test_loopback.py --tests 1,3

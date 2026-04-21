@@ -35,12 +35,4 @@ void app_main(void)
     ESP_LOGI(LOG_TAG_MAIN, "=== Boot complete ===");
     ESP_LOGI(LOG_TAG_MAIN, "SSID: %s  |  TCP Port: %d  |  Max clients: %d",
          config_get_ssid(), config_get_port(), TCP_MAX_CLIENTS);
-
-    while (1) {
-        ESP_LOGI(LOG_TAG_MAIN, "Heap free: %lu | TCP clients: %d | UART drops: %lu",
-             (unsigned long)esp_get_free_heap_size(),
-             tcp_server_client_count(),
-             (unsigned long)uart_bridge_dropped_chunks());
-        vTaskDelay(pdMS_TO_TICKS(30000));
-    }
 }
