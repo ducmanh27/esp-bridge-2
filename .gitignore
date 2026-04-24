@@ -22,7 +22,7 @@ dependencies.lock
 !.vscode/settings.json
 
 # Local SDK configuration (sometimes contains absolute paths)
-sdkconfig
+# sdkconfig
 sdkconfig.old
 
 # Log files
