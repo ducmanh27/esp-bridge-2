@@ -15,7 +15,10 @@ Firmware tự viết thay thế AT-command, cung cấp:
 esp32_uart_wifi_bridge/
 ├── CMakeLists.txt
 ├── sdkconfig.defaults
-├── test_loopback.py          ← test script chạy từ PC
+├── tests/
+    ├── it/
+        ├──test_loopback.py   ← test script chạy từ PC
+    ├── units/
 └── main/
     ├── CMakeLists.txt
     ├── config.h              ← tất cả constants / defaults
@@ -91,6 +94,7 @@ help                  Danh sách lệnh
 
 ```bash
 # Kết nối PC vào WiFi ESP32-PBE, sau đó:
+cd test/it
 pip install pyserial
 python test_loopback.py --host 192.168.10.1 --port 8080 --serial_data /dev/ttyUSB1 --cli_port /dev/ttyUSB0
 

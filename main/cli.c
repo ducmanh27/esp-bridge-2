@@ -18,7 +18,7 @@
 static QueueHandle_t s_cli_uart_event_queue = NULL;
 
 static bool is_valid_ip(const char *ip) {
-    int dots = 0;
+    int parts = 0;
     int num;
     if (ip == NULL || strlen(ip) < 7 || strlen(ip) > 15) return false;
     
@@ -29,10 +29,10 @@ static bool is_valid_ip(const char *ip) {
         for (int i = 0; tok[i]; i++) if (!isdigit((int)tok[i])) return false;
         num = atoi(tok);
         if (num < 0 || num > 255) return false;
-        dots++;
+        parts++;
         tok = strtok(NULL, ".");
     }
-    return dots == 4;
+    return parts == 4;
 }
 
 static void cli_print(const char *str)
